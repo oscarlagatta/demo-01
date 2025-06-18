@@ -1,4 +1,3 @@
-#!/bin/sh
 echo "🎫 Validating Jira ticket in commit message..."
 
 # Run Jira ticket validation

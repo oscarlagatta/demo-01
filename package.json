@@ -10,11 +10,15 @@
     "lint:affected": "nx affected:lint",
     "lint:staged": "lint-staged",
     "lint:staged:debug": "lint-staged --debug",
+    "lint:staged:test": "node scripts/test-nx-lint-staged-manual.js",
+    "lint:staged:test-file": "node scripts/test-nx-lint-staged-manual.js",
+    "lint:staged:verbose": "DEBUG=lint-staged* lint-staged",
+    "prepare": "husky",
     "start": "next start"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "nx affected:lint --files",
+      "node scripts/nx-lint-staged.js",
       "nx format:write --uncommitted"
     ],
     "*.{json,md,css,scss,html}": [
@@ -86,6 +90,8 @@
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
