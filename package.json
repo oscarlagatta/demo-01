@@ -5,8 +5,21 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "format:staged": "nx format:write --uncommitted",
     "lint": "next lint",
+    "lint:affected": "nx affected:lint",
+    "lint:staged": "lint-staged",
+    "lint:staged:debug": "lint-staged --debug",
     "start": "next start"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "nx affected:lint --files",
+      "nx format:write --uncommitted"
+    ],
+    "*.{json,md,css,scss,html}": [
+      "nx format:write --uncommitted"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
