@@ -3,23 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
+    "build": "nx build",
+    "dev": "nx serve",
+    "format:all": "nx format:write",
     "format:staged": "nx format:write --uncommitted",
-    "lint": "next lint",
-    "lint:affected": "nx affected:lint",
+    "lint": "nx run-many --target=lint --all",
+    "lint:affected": "nx affected --target=lint",
     "lint:staged": "lint-staged",
     "lint:staged:debug": "lint-staged --debug",
-    "lint:staged:test": "node scripts/test-nx-lint-staged-manual.js",
-    "lint:staged:test-file": "node scripts/test-nx-lint-staged-manual.js",
+    "lint:staged:test": "node scripts/test-nx-monorepo-lint-staged.js",
     "lint:staged:verbose": "DEBUG=lint-staged* lint-staged",
+    "lint:workspace": "nx workspace-lint",
     "prepare": "husky",
-    "start": "next start"
+    "start": "nx serve",
+    "test": "nx run-many --target=test --all",
+    "test:affected": "nx affected --target=test"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "node scripts/nx-lint-staged.js",
-      "nx format:write --uncommitted"
+      "node scripts/nx-monorepo-lint-staged.js"
     ],
     "*.{json,md,css,scss,html}": [
       "nx format:write --uncommitted"
