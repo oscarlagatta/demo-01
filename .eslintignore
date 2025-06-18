@@ -27,3 +27,6 @@ next-env.d.ts
 
 # Nx specific
 .nx/
+
+# Shadcn UI Kit
+libs/ui-kit/

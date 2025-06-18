@@ -11,6 +11,7 @@
     "lint:affected": "nx affected --target=lint",
     "lint:staged": "lint-staged",
     "lint:staged:debug": "lint-staged --debug",
+    "lint:staged:fast": "node scripts/nx-monorepo-lint-staged.js",
     "lint:staged:test": "node scripts/test-nx-monorepo-lint-staged.js",
     "lint:staged:verbose": "DEBUG=lint-staged* lint-staged",
     "lint:workspace": "nx workspace-lint",

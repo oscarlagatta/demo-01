@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * Nx Monorepo Lint-Staged Script
- * Optimized for Nx workspaces with proper project detection and affected linting
+ * Nx Monorepo Lint-Staged Script - Optimized Version
+ * Fast, targeted linting for Nx workspaces with proper project detection
  * Cross-platform compatible (Windows, macOS, Linux)
  */
 
-const { spawn } = require("child_process")
+const { spawn, execSync } = require("child_process")
 const fs = require("fs")
 const path = require("path")
 const os = require("os")
@@ -22,6 +22,9 @@ const colors = {
 
 const isWindows = os.platform() === "win32"
 const supportsColor = process.env.FORCE_COLOR || !isWindows || process.env.ConEmuANSI === "ON"
+
+// Libraries to exclude from linting
+const EXCLUDED_LIBRARIES = ["ui-kit"]
 
 function colorize(color, text) {
   if (!supportsColor) return text
@@ -52,21 +55,135 @@ if (stagedFiles.length === 0) {
   process.exit(0)
 }
 
-printInfo(`Processing ${stagedFiles.length} staged files in Nx monorepo...`)
+// Filter out files from excluded libraries and non-lintable files
+function filterLintableFiles(files) {
+  return files.filter((file) => {
+    // Normalize path to handle Windows backslashes
+    const normalizedPath = file.replace(/\\/g, "/")
 
-// Function to run command with proper cross-platform handling
-function runCommand(command, args, options = {}) {
-  return new Promise((resolve) => {
-    // Handle Windows command extensions
+    // Check if file is in any excluded library
+    const isExcluded = EXCLUDED_LIBRARIES.some(
+      (lib) => normalizedPath.includes(`/libs/${lib}/`) || normalizedPath.includes(`\\libs\\${lib}\\`),
+    )
+
+    if (isExcluded) {
+      printInfo(`Excluding file from ${EXCLUDED_LIBRARIES.find((lib) => normalizedPath.includes(lib))}: ${file}`)
+      return false
+    }
+
+    // Only include TypeScript/JavaScript files
+    const isLintableFile = /\.(ts|tsx|js|jsx)$/.test(file)
+
+    // Check if file exists (might have been deleted)
+    const fileExists = fs.existsSync(file)
+
+    return isLintableFile && fileExists
+  })
+}
+
+const filteredFiles = filterLintableFiles(stagedFiles)
+
+if (filteredFiles.length === 0) {
+  printSuccess("No lintable files found or all files are excluded. Skipping lint.")
+  process.exit(0)
+}
+
+printInfo(
+  `Processing ${filteredFiles.length} lintable files (${stagedFiles.length - filteredFiles.length} files excluded/filtered)...`,
+)
+
+// Function to run command synchronously for better control
+function runCommandSync(command, args, options = {}) {
+  try {
     const actualCommand = isWindows && command === "nx" ? "nx.cmd" : command
+    const fullCommand = `${actualCommand} ${args.join(" ")}`
 
-    printInfo(`Running: ${actualCommand} ${args.join(" ")}`)
+    printInfo(`Running: ${fullCommand}`)
 
-    const child = spawn(actualCommand, args, {
+    const result = execSync(fullCommand, {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+      shell: true,
+      env: { ...process.env, FORCE_COLOR: "1" },
+      maxBuffer: 1024 * 1024 * 10, // 10MB buffer
+      ...options,
+    })
+
+    return {
+      success: true,
+      stdout: result,
+      stderr: "",
+    }
+  } catch (error) {
+    return {
+      success: false,
+      stdout: error.stdout || "",
+      stderr: error.stderr || error.message,
+      code: error.status || 1,
+    }
+  }
+}
+
+// Function to get project from file path
+function getProjectFromFilePath(filePath) {
+  const normalizedPath = filePath.replace(/\\/g, "/")
+
+  // Match patterns like apps/my-app/... or libs/my-lib/...
+  const appMatch = normalizedPath.match(/^apps\/([^/]+)/)
+  if (appMatch) {
+    return { type: "app", name: appMatch[1] }
+  }
+
+  const libMatch = normalizedPath.match(/^libs\/([^/]+)/)
+  if (libMatch) {
+    return { type: "lib", name: libMatch[1] }
+  }
+
+  // Root level files
+  return { type: "root", name: null }
+}
+
+// Function to get affected projects from file paths
+function getAffectedProjectsFromFiles(files) {
+  const projects = new Set()
+
+  for (const file of files) {
+    const project = getProjectFromFilePath(file)
+    if (project.name && !EXCLUDED_LIBRARIES.includes(project.name)) {
+      projects.add(project.name)
+    }
+  }
+
+  return Array.from(projects)
+}
+
+// Function to check if project has lint target
+function projectHasLintTarget(projectName) {
+  try {
+    const result = runCommandSync("nx", ["show", "project", projectName, "--json"])
+    if (result.success) {
+      const projectConfig = JSON.parse(result.stdout)
+      return projectConfig.targets && projectConfig.targets.lint
+    }
+  } catch (error) {
+    printWarning(`Could not check lint target for project ${projectName}: ${error.message}`)
+  }
+  return false
+}
+
+// Function to lint specific files with ESLint directly (fastest for small sets)
+async function lintFilesDirectly(files) {
+  if (files.length === 0) return true
+
+  printInfo(`Linting ${files.length} files directly with ESLint...`)
+
+  return new Promise((resolve) => {
+    const actualCommand = isWindows ? "npx.cmd" : "npx"
+
+    const child = spawn(actualCommand, ["eslint", "--fix", ...files], {
       stdio: ["pipe", "pipe", "pipe"],
       shell: isWindows,
       env: { ...process.env, FORCE_COLOR: "1" },
-      ...options,
     })
 
     let stdout = ""
@@ -75,151 +192,69 @@ function runCommand(command, args, options = {}) {
     child.stdout?.on("data", (data) => {
       const output = data.toString()
       stdout += output
-      // Stream output in real-time for better UX
       process.stdout.write(output)
     })
 
     child.stderr?.on("data", (data) => {
       const output = data.toString()
       stderr += output
-      // Only show stderr if it's not just warnings
-      if (!output.includes("warning") && !output.includes("deprecated")) {
+      // Only show actual errors, not warnings
+      if (output.includes("error") && !output.includes("warning")) {
         process.stderr.write(output)
       }
     })
 
     child.on("close", (code) => {
-      resolve({
-        success: code === 0,
-        stdout,
-        stderr,
-        code,
-      })
+      if (code === 0) {
+        printSuccess("Direct ESLint completed successfully")
+        resolve(true)
+      } else {
+        printError("Direct ESLint failed")
+        resolve(false)
+      }
     })
 
     child.on("error", (error) => {
-      printError(`Command failed to start: ${error.message}`)
-      resolve({
-        success: false,
-        error: error.message,
-        code: 1,
-      })
+      printError(`ESLint command failed: ${error.message}`)
+      resolve(false)
     })
   })
 }
 
-// Function to check if we're in an Nx workspace
-async function validateNxWorkspace() {
-  try {
-    // Check for nx.json
-    if (!fs.existsSync("nx.json")) {
-      printError("nx.json not found - not in an Nx workspace")
-      return false
-    }
-
-    // Check nx command
-    const result = await runCommand("nx", ["--version"])
-    if (result.success) {
-      printSuccess("Nx workspace validated")
-      return true
-    } else {
-      printError("Nx command not available")
-      return false
-    }
-  } catch (error) {
-    printError(`Nx validation failed: ${error.message}`)
-    return false
-  }
-}
-
-// Function to get affected projects for the staged files
-async function getAffectedProjects(files) {
-  try {
-    printInfo("Detecting affected projects...")
-
-    // Use nx show projects --affected with files
-    const fileList = files.join(",")
-    const result = await runCommand("nx", ["show", "projects", "--affected", "--files", fileList])
-
-    if (result.success && result.stdout.trim()) {
-      const projects = result.stdout
-        .trim()
-        .split("\n")
-        .filter((p) => p.trim())
-      printInfo(`Found ${projects.length} affected projects: ${projects.join(", ")}`)
-      return projects
-    } else {
-      printWarning("Could not determine affected projects, will use affected:lint")
-      return []
-    }
-  } catch (error) {
-    printWarning(`Could not determine affected projects: ${error.message}`)
-    return []
-  }
-}
-
-// Function to get projects with lint targets
-async function getProjectsWithLintTargets() {
-  try {
-    const result = await runCommand("nx", ["show", "projects", "--with-target=lint"])
-
-    if (result.success && result.stdout.trim()) {
-      const projects = result.stdout
-        .trim()
-        .split("\n")
-        .filter((p) => p.trim())
-      printInfo(`Found ${projects.length} projects with lint targets`)
-      return projects
-    }
-    return []
-  } catch (error) {
-    printWarning(`Could not get projects with lint targets: ${error.message}`)
-    return []
-  }
-}
-
-// Function to lint using Nx affected command (most efficient)
-async function lintWithNxAffected(files) {
-  printInfo("Using nx affected:lint for optimal performance...")
-
-  const fileList = files.join(",")
-
-  const result = await runCommand("nx", [
-    "affected",
-    "--target=lint",
-    "--fix",
-    `--files=${fileList}`,
-    "--parallel=3", // Limit parallelism for stability
-  ])
-
-  if (result.success) {
-    printSuccess("nx affected:lint completed successfully")
-    return true
-  } else {
-    printWarning("nx affected:lint failed, trying individual project approach...")
-    return false
-  }
-}
-
-// Function to lint specific projects individually
-async function lintAffectedProjects(projects, files) {
+// Function to lint specific projects
+async function lintSpecificProjects(projects, files) {
   if (projects.length === 0) {
-    printWarning("No affected projects found")
-    return true
+    return await lintFilesDirectly(files)
   }
 
-  printInfo(`Linting ${projects.length} affected projects individually...`)
+  printInfo(`Linting ${projects.length} specific projects: ${projects.join(", ")}`)
 
   let overallSuccess = true
-  const fileList = files.join(",")
 
   for (const project of projects) {
+    if (!projectHasLintTarget(project)) {
+      printWarning(`Project ${project} has no lint target, skipping...`)
+      continue
+    }
+
     printInfo(`Linting project: ${project}`)
 
-    const result = await runCommand("nx", ["lint", project, "--fix", `--files=${fileList}`])
+    // Get files that belong to this project
+    const projectFiles = files.filter((file) => {
+      const projectInfo = getProjectFromFilePath(file)
+      return projectInfo.name === project
+    })
+
+    if (projectFiles.length === 0) {
+      printInfo(`No files to lint for project ${project}`)
+      continue
+    }
+
+    const result = runCommandSync("nx", ["lint", project, "--fix"])
 
     if (!result.success) {
       printError(`Linting failed for project: ${project}`)
+      printError(result.stderr)
       overallSuccess = false
     } else {
       printSuccess(`Project ${project} linted successfully`)
@@ -229,52 +264,32 @@ async function lintAffectedProjects(projects, files) {
   return overallSuccess
 }
 
-// Fallback to workspace-wide linting
-async function fallbackToWorkspaceLint() {
-  printWarning("Falling back to workspace-wide linting...")
-
-  const result = await runCommand("nx", ["run-many", "--target=lint", "--all", "--fix"])
-
-  if (result.success) {
-    printSuccess("Workspace linting completed successfully")
-    return true
-  } else {
-    printError("Workspace linting failed")
-    return false
-  }
-}
-
 // Main execution function
 async function main() {
   try {
-    // Validate Nx workspace
-    const isValidNx = await validateNxWorkspace()
-    if (!isValidNx) {
-      printError("Not a valid Nx workspace. Please run this from the workspace root.")
-      process.exit(1)
+    // Check if we're in an Nx workspace
+    if (!fs.existsSync("nx.json")) {
+      printWarning("Not in an Nx workspace, falling back to direct ESLint...")
+      const success = await lintFilesDirectly(filteredFiles)
+      process.exit(success ? 0 : 1)
     }
 
-    // Strategy 1: Try nx affected:lint (most efficient)
-    let success = await lintWithNxAffected(stagedFiles)
+    // Get affected projects from file paths (much faster than nx affected)
+    const affectedProjects = getAffectedProjectsFromFiles(filteredFiles)
 
-    if (!success) {
-      // Strategy 2: Get affected projects and lint them individually
-      const affectedProjects = await getAffectedProjects(stagedFiles)
-      const projectsWithLint = await getProjectsWithLintTargets()
-
-      // Filter affected projects to only those with lint targets
-      const lintableAffectedProjects = affectedProjects.filter((p) => projectsWithLint.includes(p))
-
-      if (lintableAffectedProjects.length > 0) {
-        success = await lintAffectedProjects(lintableAffectedProjects, stagedFiles)
-      } else {
-        // Strategy 3: Fallback to workspace-wide linting
-        success = await fallbackToWorkspaceLint()
-      }
+    if (affectedProjects.length === 0) {
+      printInfo("No specific projects affected, linting files directly...")
+      const success = await lintFilesDirectly(filteredFiles)
+      process.exit(success ? 0 : 1)
     }
+
+    printInfo(`Detected affected projects: ${affectedProjects.join(", ")}`)
+
+    // Lint the specific affected projects
+    const success = await lintSpecificProjects(affectedProjects, filteredFiles)
 
     if (success) {
-      printSuccess("All staged files linted successfully in Nx monorepo!")
+      printSuccess("All staged files linted successfully!")
       process.exit(0)
     } else {
       printError("Linting failed. Please fix the issues and try again.")
