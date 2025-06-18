@@ -1,0 +1,16 @@
+{
+  "buildable_library": {
+    "purpose": "Published to npm or distributed as compiled artifacts",
+    "build_process": "TypeScript compilation, bundling, optimization",
+    "consumption": "External projects import compiled code",
+    "independence": "Must work standalone with peer dependencies",
+    "examples": ["@company/ui-components", "@company/api-client"]
+  },
+  "non_buildable_library": {
+    "purpose": "Code organization within monorepo",
+    "build_process": "Compiled together with consuming applications",
+    "consumption": "Internal projects import source TypeScript",
+    "independence": "Shares build context with applications",
+    "examples": ["libs/shared/utils", "libs/feature/user-management"]
+  }
+}

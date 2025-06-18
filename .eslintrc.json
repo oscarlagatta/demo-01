@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    "plugin:tailwindcss/recommended",
+    "next/core-web-vitals",
+    "prettier"
+  ],
+  "parser": "typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "project": ["./tsconfig.json", "./tsconfig.*.json"]
+  },
+  "plugins": [
+    "typescript-eslint",
+    "react",
+    "react-hooks",
+    "jsx-a11y",
+    "import",
+    "simple-import-sort",
+    "unused-imports",
+    "tailwindcss"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true
+      },
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    },
+    "tailwindcss": {
+      "callees": ["cn", "clsx", "cva"],
+      "config": "tailwind.config.ts"
+    }
+  },
+  "rules": {
+    // TypeScript Rules
+    "typescript-eslint/no-explicit-any": "warn",
+    "typescript-eslint/no-unused-vars": "off", // Using unused-imports plugin instead
+    "typescript-eslint/explicit-module-boundary-types": "off",
+    "typescript-eslint/no-non-null-assertion": "warn",
+    "typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "disallowTypeAnnotations": false
+      }
+    ],
+    "typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "typescript-eslint/prefer-nullish-coalescing": "off",
+    "typescript-eslint/prefer-optional-chain": "error",
+
+    // React Rules
+    "react/prop-types": "off", // Not needed with TypeScript
+    "react/react-in-jsx-scope": "off", // Not needed with React 17+
+    "react/jsx-curly-brace-presence": ["error", { "props": "never", "children": "never" }],
+    "react/self-closing-comp": ["error", { "component": true, "html": true }],
+    "react/jsx-boolean-value": ["error", "never"],
+    "react/jsx-no-useless-fragment": "error",
+    "react/no-array-index-key": "warn",
+    "react/jsx-sort-props": [
+      "warn",
+      {
+        "callbacksLast": true,
+        "shorthandFirst": true,
+        "reservedFirst": true
+      }
+    ],
+
+    // React Hooks Rules
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+
+    // Import Rules
+    "import/no-unresolved": "error",
+    "import/no-cycle": "error",
+    "import/no-duplicates": "error",
+    "import/no-useless-path-segments": "error",
+    "import/first": "error",
+    "import/newline-after-import": "error",
+    "import/no-default-export": "off", // Allow default exports for pages
+
+    // Import Sorting
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "after-used",
+        "argsIgnorePattern": "^_"
+      }
+    ],
+
+    // Code Style Rules
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-debugger": "warn",
+    "no-alert": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "prefer-template": "error",
+    "prefer-destructuring": ["warn", { "object": true, "array": false }],
+    "no-nested-ternary": "warn",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "max-lines": ["warn", { "max": 300, "skipBlankLines": true, "skipComments": true }],
+    "max-depth": ["warn", 4],
+    "max-params": ["warn", 4],
+    "arrow-body-style": ["error", "as-needed"],
+
+    // Accessibility Rules
+    "jsx-a11y/anchor-is-valid": [
+      "error",
+      {
+        "components": ["Link"],
+        "specialLink": ["hrefLeft", "hrefRight"],
+        "aspects": ["invalidHref", "preferButton"]
+      }
+    ],
+
+    // Tailwind Rules
+    "tailwindcss/no-custom-classname": [
+      "warn",
+      {
+        "whitelist": ["^animate-", "^data-\\[.*\\]"]
+      }
+    ],
+    "tailwindcss/classnames-order": "error"
+  },
+  "overrides": [
+    // Next.js Pages and App Router Files
+    {
+      "files": ["**/pages/**/*.{ts,tsx}", "**/app/**/*.{ts,tsx}"],
+      "rules": {
+        "import/no-default-export": "off",
+        "react/function-component-definition": [
+          "error",
+          {
+            "namedComponents": "function-declaration"
+          }
+        ]
+      }
+    },
+    // Component Files
+    {
+      "files": ["**/components/**/*.{ts,tsx}"],
+      "rules": {
+        "react/function-component-definition": [
+          "error",
+          {
+            "namedComponents": "function-declaration"
+          }
+        ]
+      }
+    },
+    // Test Files
+    {
+      "files": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/tests/**/*.{ts,tsx}"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "typescript-eslint/no-explicit-any": "off",
+        "max-lines": "off"
+      }
+    },
+    // Configuration Files
+    {
+      "files": ["*.config.{js,ts}", "next.config.{js,ts}", "tailwind.config.{js,ts}"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    ".next/",
+    "out/",
+    "coverage/",
+    "public/",
+    "**/*.d.ts",
+    "**/*.js.map",
+    "**/*.config.js",
+    "**/*.config.ts"
+  ]
+}

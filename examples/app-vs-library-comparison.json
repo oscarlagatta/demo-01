@@ -1,0 +1,16 @@
+{
+  "application": {
+    "target": "Single deployment environment",
+    "bundling": "Webpack/Next.js handles bundling",
+    "consumers": "End users via browser",
+    "exports": "Not consumed by other code",
+    "dependencies": "Can include any dependencies"
+  },
+  "library": {
+    "target": "Multiple environments (Node, Browser, SSR)",
+    "bundling": "Must provide multiple formats (ESM, CJS, UMD)",
+    "consumers": "Other developers/applications",
+    "exports": "Public API must be carefully designed",
+    "dependencies": "Peer dependencies to avoid conflicts"
+  }
+}

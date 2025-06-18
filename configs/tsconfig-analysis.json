@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "strictNullChecks": true, // This is what's missing
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true
+  },
+  "explanation": {
+    "strictNullChecks": "Enables proper null/undefined checking",
+    "impact": "Without this, prefer-nullish-coalescing rule cannot function",
+    "recommendation": "Enable this for better type safety"
+  }
+}

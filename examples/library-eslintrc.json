@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "root": true,
+  "extends": ["eslint:recommended", "@typescript-eslint/recommended"],
+  "rules": {
+    // Library-specific rules
+    "import/no-default-export": "error", // Libraries should use named exports
+    "no-console": "error", // Libraries shouldn't log to console
+    "prefer-named-capture-group": "error", // Better API design
+
+    // Stricter than applications
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/explicit-module-boundary-types": "error",
+
+    // Relaxed rules for internal development
+    "@typescript-eslint/no-explicit-any": "warn", // Sometimes needed for generic libraries
+    "complexity": ["warn", 15] // Libraries may have complex internal logic
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.ts", "src/**/*.tsx"],
+      "rules": {
+        // Source code rules
+        "import/no-internal-modules": "error"
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.spec.ts"],
+      "rules": {
+        // Test files can be more lenient
+        "@typescript-eslint/no-explicit-any": "off",
+        "no-console": "off"
+      }
+    }
+  ]
+}

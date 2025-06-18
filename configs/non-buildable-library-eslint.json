@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "extends": ["../../../.eslintrc.json"], // Inherit from root config
+  "rules": {
+    // Stricter than applications but more lenient than buildable libraries
+
+    // Code organization rules
+    "import/no-relative-parent-imports": "error", // Prevent ../../../ imports
+    "import/no-internal-modules": "warn", // Discourage deep imports
+
+    // API design (less strict than buildable libraries)
+    "@typescript-eslint/explicit-function-return-type": "off", // Internal code
+    "import/no-default-export": "warn", // Prefer named exports but not required
+
+    // Shared code quality
+    "no-console": "warn", // OK for development, but discouraged
+    "@typescript-eslint/no-explicit-any": "warn", // More lenient for internal code
+
+    // Prevent library-specific anti-patterns
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["../../apps/**"],
+            "message": "Libraries cannot import from applications"
+          },
+          {
+            "group": ["../../../libs/*/src/**"],
+            "message": "Use barrel exports instead of deep imports"
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/index.ts"],
+      "rules": {
+        // Barrel export file - must be clean
+        "import/export": "error",
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "ExportAllDeclaration",
+            "message": "Avoid export * - be explicit about public API"
+          }
+        ]
+      }
+    }
+  ]
+}

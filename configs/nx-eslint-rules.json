@@ -1,0 +1,27 @@
+{
+  "plugins": ["@nx"],
+  "rules": {
+    // Nx boundary rules
+    "@nx/enforce-module-boundaries": [
+      "error",
+      {
+        "enforceBuildableLibDependency": true,
+        "allow": [],
+        "depConstraints": [
+          {
+            "sourceTag": "scope:shared",
+            "onlyDependOnLibsWithTags": ["scope:shared"]
+          },
+          {
+            "sourceTag": "scope:feature",
+            "onlyDependOnLibsWithTags": ["scope:shared", "scope:feature"]
+          },
+          {
+            "sourceTag": "type:app",
+            "onlyDependOnLibsWithTags": ["*"]
+          }
+        ]
+      }
+    ]
+  }
+}

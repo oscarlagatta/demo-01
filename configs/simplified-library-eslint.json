@@ -1,0 +1,21 @@
+{
+  "extends": ["../../../.eslintrc.json"],
+  "rules": {
+    // Only the essential differences from your app config
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": ["../../apps/**", "../../../apps/**", "**/apps/**"],
+        "message": "Libraries cannot import from applications"
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/index.ts"],
+      "rules": {
+        "import/export": "error"
+      }
+    }
+  ]
+}

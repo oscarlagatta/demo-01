@@ -1,0 +1,16 @@
+{
+  "focus": "Development Experience & Code Quality",
+  "priorities": [
+    "Consistent code style across team",
+    "Prevent runtime errors",
+    "Accessibility compliance",
+    "Framework-specific best practices",
+    "Development productivity"
+  ],
+  "example_rules": {
+    "react/jsx-sort-props": "warn",
+    "jsx-a11y/anchor-is-valid": "error",
+    "no-console": "warn",
+    "import/no-default-export": "off"
+  }
+}

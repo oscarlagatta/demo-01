@@ -1,0 +1,50 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "rules": {
+    // Stricter than applications
+    "import/no-default-export": "error",
+    "no-console": "error",
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/explicit-module-boundary-types": "error",
+
+    // Library-specific rules
+    "react/prop-types": "off", // Using TypeScript instead
+    "react/display-name": "error", // Important for debugging
+    "react/no-unknown-property": "error",
+
+    // Prevent common library mistakes
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["../**/internal/*"],
+            "message": "Don't import internal modules from parent directories"
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/index.ts"],
+      "rules": {
+        // Main export file rules
+        "import/export": "error",
+        "import/no-unused-modules": "error"
+      }
+    },
+    {
+      "files": ["**/*.stories.tsx"],
+      "rules": {
+        // Storybook files can use default exports
+        "import/no-default-export": "off"
+      }
+    }
+  ]
+}

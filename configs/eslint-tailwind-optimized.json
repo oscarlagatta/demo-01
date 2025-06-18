@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
+    "plugin:tailwindcss/recommended",
+    "next/core-web-vitals",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "project": ["./tsconfig.json"]
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "react-hooks",
+    "jsx-a11y",
+    "import",
+    "simple-import-sort",
+    "unused-imports",
+    "tailwindcss"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": ["./tsconfig.json"]
+      },
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    },
+    "tailwindcss": {
+      "callees": ["cn", "clsx", "cva", "classNames"],
+      "config": "tailwind.config.ts",
+      "cssFiles": ["**/*.css", "!**/node_modules", "!**/.*", "!**/dist", "!**/build"],
+      "cssFilesRefreshRate": 5000,
+      "removeDuplicates": true,
+      "skipClassAttribute": false,
+      "whitelist": [
+        "^animate-.*",
+        "^data-\\[.*\\]:",
+        "^group-\\[.*\\]:",
+        "^peer-\\[.*\\]:",
+        "^supports-\\[.*\\]:",
+        "^min-\\[.*\\]:",
+        "^max-\\[.*\\]:",
+        "^\\[.*\\]$"
+      ]
+    }
+  },
+  "rules": {
+    // Tailwind CSS specific rules with optimized settings
+    "tailwindcss/no-custom-classname": [
+      "warn",
+      {
+        "callees": ["cn", "clsx", "cva", "classNames"],
+        "config": "tailwind.config.ts",
+        "cssFiles": ["**/*.css"],
+        "skipClassAttribute": false,
+        "whitelist": [
+          // Tailwind v3 arbitrary values
+          "^\\[.*\\]$",
+          // Data attribute selectors
+          "^data-\\[.*\\]:",
+          // Group selectors
+          "^group-\\[.*\\]:",
+          // Peer selectors
+          "^peer-\\[.*\\]:",
+          // CSS supports queries
+          "^supports-\\[.*\\]:",
+          // Custom animations
+          "^animate-.*",
+          // Arbitrary sizing
+          "^(min|max)-(w|h)-\\[.*\\]$",
+          // Custom spacing
+          "^(m|p)(t|r|b|l|x|y)?-\\[.*\\]$",
+          // Custom colors
+          "^(bg|text|border)-\\[.*\\]$",
+          // Custom shadows
+          "^shadow-\\[.*\\]$",
+          // Custom gradients
+          "^(from|via|to)-\\[.*\\]$"
+        ]
+      }
+    ],
+    "tailwindcss/classnames-order": "error",
+    "tailwindcss/enforces-negative-arbitrary-values": "error",
+    "tailwindcss/enforces-shorthand": "warn",
+    "tailwindcss/migration-from-tailwind-2": "error",
+    "tailwindcss/no-arbitrary-value": "off",
+    "tailwindcss/no-contradicting-classname": "error",
+    "tailwindcss/no-unnecessary-arbitrary-value": "warn",
+
+    // TypeScript rules optimized for v8
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "disallowTypeAnnotations": false,
+        "fixStyle": "separate-type-imports"
+      }
+    ],
+    "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/prefer-optional-chain": "error",
+    "@typescript-eslint/no-unnecessary-condition": "warn",
+    "@typescript-eslint/prefer-readonly": "warn",
+
+    // Import rules
+    "simple-import-sort/imports": [
+      "error",
+      {
+        "groups": [
+          // React and Next.js imports first
+          ["^react", "^next"],
+          // External packages
+          ["^@?\\w"],
+          // Internal packages
+          ["^(@|components|lib|hooks|utils|types)(/.*|$)"],
+          // Relative imports
+          ["^\\."],
+          // Style imports last
+          ["^.+\\.s?css$"]
+        ]
+      }
+    ],
+    "simple-import-sort/exports": "error",
+    "unused-imports/no-unused-imports": "error",
+
+    // React rules
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-curly-brace-presence": ["error", { "props": "never", "children": "never" }],
+    "react/self-closing-comp": ["error", { "component": true, "html": true }],
+    "react/jsx-boolean-value": ["error", "never"],
+    "react/jsx-no-useless-fragment": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/pages/**/*.{ts,tsx}", "**/app/**/*.{ts,tsx}"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "tailwindcss/no-custom-classname": "off"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+#!/bin/sh
+echo "🎫 Validating Jira ticket in commit message..."
+
+# Run Jira ticket validation
+node tools/validate-jira-ticket.js "$1"
+
+# Check if validation passed
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "💡 To fix your commit message:"
+    echo "   1. Use 'git commit --amend' to edit your message"
+    echo "   2. Start with a valid Jira ticket (e.g., EARS-1887: your message)"
+    echo "   3. Or use 'git commit --no-verify' to bypass validation"
+    echo ""
+    exit 1
+fi
+
+echo "✅ Commit message validation passed!"
