@@ -298,6 +298,6 @@ This project uses ESLint with the following plugins:
 ### Key Rules
 
 #### Simple Import Sort
-```javascript
+\`\`\`javascript
 'simple-import-sort/imports': 'error',
 'simple-import-sort/exports': 'error',
