@@ -1,8 +1,0 @@
-{
-  "scripts": {
-    "lint:staged": "node scripts/lint-staged-nx.js",
-    "lint:staged:test": "node scripts/test-lint-staged-windows.js",
-    "lint:staged:debug": "node scripts/lint-staged-nx.js --verbose",
-    "prepare": "husky"
-  }
-}
